@@ -1,5 +1,4 @@
 import numpy as np
-import itertools
 
 
 class InputError(Exception):
@@ -23,17 +22,29 @@ class QBit:
     def vector(self, value: np.matrix):
         self._vector = value
 
+    def __str__(self):
+        return str(self.vector)
+
 
 def hadamard(qbit: QBit):
-    T = np.zeros(2, 2)
+    T = np.zeros((2, 2))
     for i in range(2):
         for j in range(2):
             T[i][j] = 1/(2 ** (1/2)) * (-1) ** (i * j)
+    qbit.vector = np.dot(T, qbit.vector)
 
 
+q = QBit('0')
+print(q)
+hadamard(q)
+print(q)
+hadamard(q)
+print(q)
 
+
+"""
 class QState:
-    """a_1|x_1> + a_2|x_2> + ... + a_n|x_n>"""
+    a_1|x_1> + a_2|x_2> + ... + a_n|x_n>
     def __init__(self, init_state='0', num_qbits=1):
         if len(init_state) > num_qbits:
             num_qbits = len(init_state)
@@ -55,7 +66,7 @@ print(k._state)
 
 
 def hadamard_gate(ket: QState):
-    """Performs the generalized Hadamard transform on a ket of arbitrary length"""
+    Performs the generalized Hadamard transform on a ket of arbitrary length
     if ('hadamard', len(ket)) in stored_gates:
         T = stored_gates[('hadamard', len(ket))]
     else:
@@ -65,3 +76,7 @@ def hadamard_gate(ket: QState):
                 T[i][j] = 1/(2 ** (len(ket)/2)) * (-1) ** (i * j)
     print(T)
     return np.transpose(ket.state).dot(T)
+
+
+
+"""
