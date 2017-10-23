@@ -26,6 +26,48 @@ class QBit:
         return str(self.vector)
 
 
+class QState:
+    def __init__(self, l=None):
+        self._bits = []
+
+        if type(l) is list:
+            self._bits = l
+        elif type(l) is int:
+            for i in range(l):
+                self._bits.append(QBit())
+        else:
+            pass
+
+    @property
+    def bits(self):
+        return self._bits
+
+    def __getitem__(self, item):
+        pass
+
+    def add_bit(self, bit=None):
+        if bit is None:
+            self.bits.append(bit)
+        else:
+            self.bits.append(QBit())
+
+    def substate(self, *args):
+        new_state = QState()
+        for i in args:
+            if type(i) is not int:
+                print("Invalid argument list")
+                return
+        for i in args:
+            new_state.add_bit(self.bits[i])
+
+
+def measure(state):
+    if type(state) is QBit:
+        pass
+    elif type(state) is QState:
+        pass
+
+
 def hadamard(qbit: QBit):
     T = np.zeros((2, 2))
     for i in range(2):
@@ -34,11 +76,28 @@ def hadamard(qbit: QBit):
     qbit.vector = np.dot(T, qbit.vector)
 
 
+def pauli_x(qbit: QBit):
+    """NOT"""
+    T = np.matrix([[0, 1], [1, 0]])
+    qbit.vector = np.dot(T, qbit.vector)
+
+
+def pauli_y(qbit: QBit):
+    T = np.matrix([[0, 0-1j], [1j, 0]])
+    qbit.vector = np.dot(T, qbit.vector)
+
+
+def swap(qstate: QState):
+    pass
+
+
 q = QBit('0')
 print(q)
 hadamard(q)
 print(q)
 hadamard(q)
+print(q)
+pauli_x(q)
 print(q)
 
 
