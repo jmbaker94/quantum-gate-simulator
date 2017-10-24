@@ -15,12 +15,27 @@ class QBit:
         self._vector = np.matrix([[self._state['0']], [self._state['1']]])
 
     @property
+    def state(self):
+        return self._state
+
+    @state.setter
+    def state(self, value):
+        print(value)
+        if value not in ['0', '1']:
+            print("can't set qbit")
+            return
+        self._state = {'0': 0, '1': 0, value: 1}
+        self._vector = np.matrix([[self._state['0']], [self._state['1']]])
+
+    @property
     def vector(self):
         return self._vector
 
     @vector.setter
     def vector(self, value: np.matrix):
         self._vector = value
+        self._state['0'] = float(value[0][0])
+        self._state['1'] = float(value[1][0])
 
     def __str__(self):
         return str(self.vector)
@@ -63,7 +78,9 @@ class QState:
 
 def measure(state):
     if type(state) is QBit:
-        pass
+        print(str(np.random.choice(np.arange(0, 2), p=[float(x) ** 2 for x in state.vector])))
+        state.state = str(np.random.choice(np.arange(0, 2), p=[float(x) ** 2 for x in state.vector]))
+
     elif type(state) is QState:
         pass
 
@@ -98,6 +115,11 @@ print(q)
 hadamard(q)
 print(q)
 pauli_x(q)
+print(q)
+print("///////")
+q = QBit('0')
+hadamard(q)
+measure(q)
 print(q)
 
 
