@@ -1,5 +1,5 @@
 import numpy as np
-
+import itertools
 
 class InputError(Exception):
     pass
@@ -37,6 +37,12 @@ class QBit:
         self._state['0'] = float(value[0][0])
         self._state['1'] = float(value[1][0])
 
+    def __getitem__(self, item):
+        if item not in ['0', '1']:
+            print("can't get this qbit item")
+            return None
+        return self._state[item]
+
     def __str__(self):
         return str(self.vector)
 
@@ -53,12 +59,22 @@ class QState:
         else:
             pass
 
+        self._vector = []
+        keys = list(itertools.product(['0', '1'], repeat=len(self.bits)))
+        for k in keys:
+            p = 1
+            for i in range(len(k)):
+                p *= self._bits[i][k[i]]
+            self._vector.append([p])
+
+        self._vector = np.matrix(self._vector)
+
     @property
     def bits(self):
         return self._bits
 
     def __getitem__(self, item):
-        pass
+        return self._bits[item]
 
     def add_bit(self, bit=None):
         if bit is None:
@@ -75,12 +91,20 @@ class QState:
         for i in args:
             new_state.add_bit(self.bits[i])
 
+    def __len__(self):
+        return len(self._bits)
+
+    @property
+    def vector(self):
+        return self._vector
+
+    def __str__(self):
+        return str(self._vector)
+
 
 def measure(state):
     if type(state) is QBit:
-        print(str(np.random.choice(np.arange(0, 2), p=[float(x) ** 2 for x in state.vector])))
         state.state = str(np.random.choice(np.arange(0, 2), p=[float(x) ** 2 for x in state.vector]))
-
     elif type(state) is QState:
         pass
 
@@ -108,6 +132,21 @@ def swap(qstate: QState):
     pass
 
 
+def Toffoli(qstate: QState):
+    if len(qstate) != 3:
+        print("wrong length for toffoli")
+        return
+    T = np.matrix([[1, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 1, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 1, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 1, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 1, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 1, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 1],
+                   [0, 0, 0, 0, 0, 0, 1, 0]])
+    print(np.dot(T, qstate.vector))
+
+
 q = QBit('0')
 print(q)
 hadamard(q)
@@ -121,7 +160,13 @@ q = QBit('0')
 hadamard(q)
 measure(q)
 print(q)
-
+print("//////")
+q1 = QBit('1')
+q2 = QBit('1')
+q3 = QBit('1')
+qs = QState([q1, q2, q3])
+print(qs)
+Toffoli(qs)
 
 """
 class QState:
