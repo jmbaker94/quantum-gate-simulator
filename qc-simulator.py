@@ -13,6 +13,7 @@ class QBit:
     def __init__(self, state='0'):
         self._state = {'0': 0, '1': 0, state: 1}
         self._vector = np.matrix([[self._state['0']], [self._state['1']]])
+        self._observers = []
 
     @property
     def state(self):
@@ -27,6 +28,9 @@ class QBit:
         self._state = {'0': 0, '1': 0, value: 1}
         self._vector = np.matrix([[self._state['0']], [self._state['1']]])
 
+        for c in self._observers:
+            c()
+
     @property
     def vector(self):
         return self._vector
@@ -37,6 +41,9 @@ class QBit:
         self._state['0'] = float(value[0][0])
         self._state['1'] = float(value[1][0])
 
+        for c in self._observers:
+            c()
+
     def __getitem__(self, item):
         if item not in ['0', '1']:
             print("can't get this qbit item")
@@ -46,19 +53,30 @@ class QBit:
     def __str__(self):
         return str(self.vector)
 
+    def bind_to(self, callback):
+        self._observers.append(callback)
+
 
 class QState:
-    def __init__(self, l=None):
+    def __init__(self, li=None):
         self._bits = []
 
-        if type(l) is list:
-            self._bits = l
-        elif type(l) is int:
-            for i in range(l):
+        if type(li) is list:
+            self._bits = li
+
+        elif type(li) is int:
+            for i in range(li):
                 self._bits.append(QBit())
         else:
             pass
 
+        for b in self._bits:
+            b.bind_to(self.__set)
+
+        self._vector = []
+        self.__set()
+
+    def __set(self):
         self._vector = []
         keys = list(itertools.product(['0', '1'], repeat=len(self.bits)))
         for k in keys:
@@ -77,7 +95,7 @@ class QState:
         return self._bits[item]
 
     def add_bit(self, bit=None):
-        if bit is None:
+        if bit is not None:
             self.bits.append(bit)
         else:
             self.bits.append(QBit())
@@ -90,16 +108,34 @@ class QState:
                 return
         for i in args:
             new_state.add_bit(self.bits[i])
+        return new_state
 
     def __len__(self):
         return len(self._bits)
 
     @property
     def vector(self):
+        if len(self._vector) < 2 ** len(self):
+            self.__set()
         return self._vector
 
+    @vector.setter
+    # TODO: Concern with updating here!
+    def vector(self, new_state):
+        self._vector = new_state
+
+        for i in range(len(self)):
+            sums = [0, 0]
+            which = 0
+            for j in range(2 ** len(self)):
+                if j != 0 and j % (2 ** i) == 0:
+                    which = (which + 1) % 2
+                sums[which] += float(new_state[j][0])
+                j += 1
+            self._bits[len(self) - 1 - i].vector = np.matrix([[sums[0]], [sums[1]]])
+
     def __str__(self):
-        return str(self._vector)
+        return str(self.vector)
 
 
 def measure(state):
@@ -123,6 +159,10 @@ def pauli_x(qbit: QBit):
     qbit.vector = np.dot(T, qbit.vector)
 
 
+def lnot(qbit: QBit):
+    pauli_x(qbit)
+
+
 def pauli_y(qbit: QBit):
     T = np.matrix([[0, 0-1j], [1j, 0]])
     qbit.vector = np.dot(T, qbit.vector)
@@ -144,7 +184,7 @@ def Toffoli(qstate: QState):
                    [0, 0, 0, 0, 0, 1, 0, 0],
                    [0, 0, 0, 0, 0, 0, 0, 1],
                    [0, 0, 0, 0, 0, 0, 1, 0]])
-    print(np.dot(T, qstate.vector))
+    qstate.vector = np.dot(T, qstate.vector)
 
 
 q = QBit('0')
@@ -161,12 +201,19 @@ hadamard(q)
 measure(q)
 print(q)
 print("//////")
-q1 = QBit('1')
-q2 = QBit('1')
+q1 = QBit('0')
+q2 = QBit('0')
 q3 = QBit('1')
+hadamard(q1)
+hadamard(q2)
 qs = QState([q1, q2, q3])
 print(qs)
+lnot(qs[2])
+print(qs)
 Toffoli(qs)
+print(qs)
+
+#
 
 """
 class QState:
