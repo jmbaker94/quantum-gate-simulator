@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-import sys, getopt
+import sys
+import getopt
 # sys.path.appen("PATH TO GATE SIMULATOR")
 
 def usage():
