@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import sys
 import getopt
-# sys.path.appen("PATH TO GATE SIMULATOR")
+# sys.path.append("PATH TO GATE SIMULATOR")
 
 def usage():
 	print('''
@@ -32,11 +32,11 @@ def command_line_parse():
 			sys.exit(1)
 	
 	if len(args) > 1:
-		print("Too many agruments given")
+		print("error: too many arguments given")
 		usage()
 		sys.exit(2)
 	elif len(args) < 1:
-		print("Error: No program given")
+		print("error: No program given")
 		usage()
 		sys.exit(2)
 	
