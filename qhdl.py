@@ -56,21 +56,27 @@ def read_to_non_white(f):
 	while(f.peek(1)==' '):
 		c = f.read(1)
 
+def expect(pattern, f):
+	
+
 def parser(input_file):
 	f = open(input_file, 'w')
 	end = False
-	while(not end):
-		end = parse_D(f)
+	success = True
+	while(success and not end):
+		success, end = parse_D(f)
 
 def parse_D(f):
 	read_to_non_white(f)
+	if f.peek(1) == '':
+		return True, True
 	function = f.peek(4)
 	if function == "gate":
 		read_to_white(f)
 		read_to_non_white(f)
-		return parse_F(f) and parse_T(f)
+		return parse_F(f) and parse_T(f) and expect(';', f), False
 	else:
-		return parse_F(f) and parse_R(f)
+		return parse_F(f) and parse_R(f) and expect(';', f), False
 
 def parse_F(f):
 	name = read_to_white(f)
@@ -83,16 +89,18 @@ def parse_T(f):
 	read_to_non_white(f)
 	function = read_to_white(f)
 	if function == "matrix":
-		if parse_I(f) and parse_L(f):
-			read_to_non_white()
-			if f.read(1) == '{':
-				
-			else:
-				return False;
-		else:
-			return False
+		i_value = parse_I(f)
+		l_value = parse_L(f)
+		between1 = expect('{', f)
+		m_value = parse_M(f)
+		between2 = expect('}', f)
+		return i_value and l_value and between1 and m_value and between2
 	elif function == "series":
-		return parse_L(f) 
+		l_value = parse_L(f)
+		between1 = expect('{', f)
+		k_value = parse_K(f)
+		between2 = expect('}', f)
+		return i_value and between1 and k_value and between2
 	else:
 		return False
 
@@ -103,7 +111,16 @@ def parse_I(f):
 	if match:
 		return True
 	else:
-		return False	
+		return False
+
+def parse_L(f):
+	return parse_R(f) and parse_L_prime(f)
+
+def parse_L_prime(f)
+	if f.peek(1)==' ':
+		return True
+	else:
+		return parse_R(f) and parse_L_prime(f)
 
 def main():
 	input_file, output_file = command_line_parse()
