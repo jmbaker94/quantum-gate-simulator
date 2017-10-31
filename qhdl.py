@@ -27,7 +27,6 @@ def command_line_parse():
 			usage()
 			sys.exit()
 		else:
-			assert False
 			usage()
 			sys.exit(1)
 	
