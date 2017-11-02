@@ -1,6 +1,7 @@
 1.  D  -> F L;
 2.  D  -> gate F T
-3.  D  -> inverse F F
+2. 	D  -> measure R;
+3.  D  -> inverse F F;
 4.	T  -> matrix I L { M }
 5.  T  -> series L { K }
 6.  L  -> R L'
@@ -9,13 +10,14 @@
 9.  K  -> F L; K'
 10. K' -> F L; K'
 11. K' -> epsilon
-12. M  -> V  M'
-13. M' -> V  M'
+12. M  -> J M'
+13. M' -> J M'
 14. M' -> epsilon
 15. F  -> [A-Z]([A-Z]|\-[A-Z])*
 16. R  -> [a-z][a-z0-9_]*
 17. I  -> [0-9]+
 18. J  -> E J'
-19. J' -> + Ei
-20. J' -> - Ej
-21.  
+19. J' -> + E Im
+20. J' -> - E Im
+21. Im -> i
+22. Im -> j
