@@ -52,7 +52,8 @@ def main():
 	input_file, output_file = command_line_parse()
 	d_list = parser(input_file)
 	function_dict, operation_list, qbit_set = type_check(d_list)
-	codegen(output_file, function_dict, operation_list, qbit_set)
+	if not function_dict
+		codegen(output_file, function_dict, operation_list, qbit_set)
 
 if __name__ == '__main__':
     main()
