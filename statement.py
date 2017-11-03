@@ -4,7 +4,9 @@ class StmtType(Enum):
 	GATE_USE = 1
 	GATE_DEF = 2
 	GATE_INV = 3
-	MEASURE = 4
+	CIRCUIT = 4
+	MEASURE = 5
+	SOLVE = 6
 
 class Statement:
 	def __init__(self, statement_type = None, func_name = None, func_initial_name = None, func_contents = None, reg_list = None):

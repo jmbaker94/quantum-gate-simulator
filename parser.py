@@ -80,6 +80,18 @@ def parse_D(f):
 		f_init_item = parse_F(f)
 		expect(';', f)
 		return Statement(StmtType.GATE_INV, f_final_item, f_init_item), False
+	elif token == "circuit":
+		c_item = parse_F(f)
+		list_item = parse_L(f)
+		expect("{", f)
+		k_item = parse_K(f)
+		expect("}", f)
+		return Statement(StmtType.CIRCUIT, c_item, None, Function(FuncType.CIRCUIT, None, list_item, k_item), None), False
+	elif token == "solve":
+		c_item = parse_F(f)
+		list_item = parse_L(f)
+		expect(";", f)
+		return Statement(StmtType.SOLVE, c_item, None, None, list_item), False
 	else:
 		f.seek(savepos)
 		f_item = parse_F(f)
@@ -89,12 +101,12 @@ def parse_D(f):
 
 def parse_F(f):
 	name = read_token(f)
-	match = re.search('[A-Z]([A-Z0-9]|\-[A-Z0-9])*', name)
+	match = re.search('[A-Z]([A-Z0-9]|\_[A-Z0-9])*', name)
 	if match:
 		return match[0]
 	else:
 		f.close()
-		return error(name+" does not follow gate name conventions")
+		return error(name+" does not follow gate or circuit name conventions")
 
 def parse_R(f):
 	register = read_token(f)

@@ -21,8 +21,9 @@ def type_check(d_list = None):
 		"T": Function(None, None, Register("a", Register("b", Register("c"))), None),
 	}
 	qbit_set = set()
+	circuit_table = {}
 	operation_list = []
-	if name_resolve_and_organize(d_list, function_table, qbit_set, operation_list):
+	if name_resolve_and_organize(d_list, function_table, circuit_table, qbit_set, operation_list):
 		del function_table["H"]
 		del function_table["T"]
 		del function_table["X"]
@@ -31,17 +32,21 @@ def type_check(d_list = None):
 		print("Type Errors, please fix before continuing")
 		sys.exit(4)
 
-def name_resolve_and_organize(d_list, function_table, qbit_set, operation_list):
+def name_resolve_and_organize(d_list, function_table, circuit_table, qbit_set, operation_list):
 	current = d_list
 	success = True
 	while current:
-		if StmtType.GATE_DEF == current.statement_type:
+		if StmtType.GATE_DEF == current.statement_type or StmtType.CIRCUIT == current.statement_type:
 			if current.func_name in function_table:
 				success = False
 				error("redefinition of "+current.func_name)
 			else:
-				if function_check(current.func_contents, current.func_name, function_table):
-					function_table[current.func_name] = current.func_contents
+				if StmtType.GATE_DEF == current.statement_type:
+					if function_check(current.func_contents, current.func_name, function_table):
+						function_table[current.func_name] = current.func_contents
+				else:
+					if function_check(current.func_contents, current.func_name, function_table):
+						circuit_table[current.func_name] = current.func_contents
 		elif StmtType.GATE_USE == current.statement_type:
 			if current.func_name in function_table:
 				if function_eq(current, function_table[current.func_name]):
@@ -50,6 +55,9 @@ def name_resolve_and_organize(d_list, function_table, qbit_set, operation_list):
 					while qbit:
 						qbit_set.add(qbit.name)
 						qbit = qbit.next
+				else:
+					error("incorrect number of arguments given to "+current.func_name)
+					success = False
 			else:
 				success = False
 				error("function name "+current.func_name+" does not exist")
@@ -59,11 +67,16 @@ def name_resolve_and_organize(d_list, function_table, qbit_set, operation_list):
 					success = False
 					error("redefinition of "+current.func_name)
 				else:
-					function_table[current.func_name] = Function(FuncType.MATRIX, None, Register("a"), None)
+					function_table[current.func_name] = Function(FuncType.OTHER, None, Register("a"), None)
 				operation_list.append(current)
 		elif StmtType.MEASURE == current.statement_type:
 			qbit = current.reg_list
 			qbit_set.add(qbit.name)
+			operation_list.append(current)
+		elif StmtType.SOLVE == current.statement_type:
+			qbit = current.reg_list
+			qbit_set.add(qbit.name)
+			function_eq(current, circuit_table[current.func_name])
 			operation_list.append(current)
 
 		current = current.next
@@ -109,12 +122,12 @@ def function_check(function, function_name, function_table):
 			success = False
 			error("matrix defined in "+function_name+" is not unitary")
 
-	elif function.func_type == FuncType.SERIES:
+	elif function.func_type == FuncType.SERIES or function.func_type == FuncType.CIRCUIT:
 		qbit_list = set()
 		qbit = function.arg_list
 		while qbit:
 			if qbit.name in qbit_list:
-				error(" redefinition of qbit "+qbit.name+", skipping...")
+				error("redefinition of qbit "+qbit.name+", skipping...")
 			else:
 				qbit_list.add(qbit.name)
 			qbit = qbit.next
@@ -127,6 +140,9 @@ def function_check(function, function_name, function_table):
 						if qbit.name not in qbit_list:
 							error(qbit.name+" does not exist in function "+function_name)
 						qbit = qbit.next
+				else:
+					error("incorrect number of arguments given to "+current.func_name)
+					success = False
 			else:
 				success = False
 				error("function name "+current.func_name+" does not exist")
@@ -138,17 +154,23 @@ def function_check(function, function_name, function_table):
 	return success
 
 def function_eq(func1 = None, func2 = None):
-	current_arg_1 = func1.reg_list
-	current_arg_2 = func2.arg_list
 	success = True
-	while current_arg_1 or current_arg_2 and success:
-		if current_arg_1 and not current_arg_2:
-			success = False
-			error("too many qbits given to "+func1.func_name)
-		elif current_arg_2 and not current_arg_1:
-			success = False
-			error("not enough qbits given to "+func1.func_name)
-		else:
-			current_arg_1 = current_arg_1.next
-			current_arg_2 = current_arg_2.next
+	length1 = get_length(func1.reg_list, True)
+	length2 = get_length(func2.arg_list, False)
+	if length1 != length2:
+		success = False
 	return success
+
+def get_length(reg_list, count_repeat):
+	if not count_repeat:
+		reg_set = set()
+	else:
+		reg_set = []
+	current = reg_list
+	while current:
+		if not count_repeat:
+			reg_set.add(current.name)
+		else:
+			reg_set.append(current.name)
+		current = current.next
+	return len(reg_set)

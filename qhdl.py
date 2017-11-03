@@ -4,6 +4,7 @@ import getopt
 import re
 from parser import *
 from type_checker import *
+from codegen import *
 # sys.path.appen("PATH TO GATE SIMULATOR")
 
 def usage():
@@ -51,8 +52,7 @@ def main():
 	input_file, output_file = command_line_parse()
 	d_list = parser(input_file)
 	function_dict, operation_list, qbit_set = type_check(d_list)
-	print(function_dict)
-
+	codegen(output_file, function_dict, operation_list, qbit_set)
 
 if __name__ == '__main__':
     main()
