@@ -36,11 +36,11 @@ def command_line_parse():
 			sys.exit(1)
 	
 	if len(args) > 1:
-		print("Too many agruments given")
+		print("error: too many arguments given")
 		usage()
 		sys.exit(2)
 	elif len(args) < 1:
-		print("Error: No program given")
+		print("error: No program given")
 		usage()
 		sys.exit(2)
 	
