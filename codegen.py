@@ -8,17 +8,12 @@ from register import *
 from matrixData import *
 
 def codegen(output_file = None, function_dict = None, operation_list = None, qbit_set = None):
-	if output_file and function_dict and operation_list and qbit_set:
-		f = open(output_file, 'w+')
-		add_imports(f)
-		add_functions(f, function_dict)
-		create_main(f, function_dict, operation_list, qbit_set)
-		add_init(f)
-		f.close()
-
-	else:
-		error()
-		sys.exit(5)
+	f = open(output_file, 'w')
+	add_imports(f)
+	add_functions(f, function_dict)
+	create_main(f, function_dict, operation_list, qbit_set)
+	add_init(f)
+	f.close()
 
 def add_imports(f):
 	f.write("#!/usr/bin/env python3\n")
@@ -85,7 +80,7 @@ def create_function(f, function_dict, function, func_name):
 		while operation:
 			if StmtType.GATE_USE == operation.statement_type:
 				if operation.func_name == "H":
-					f.write("\thadamard("+"qstate["+str(arg_list.index(reg.name))+"]"+")\n")
+					f.write("\thadamard("+"qstate["+str(arg_list.index(operation.reg_list.name))+"]"+")\n")
 				elif operation.func_name == "T":
 					f.write("\tToffoli(QState([")
 					reg = operation.reg_list
@@ -95,10 +90,10 @@ def create_function(f, function_dict, function, func_name):
 					f.write("qstate["+str(arg_list.index(reg.name))+"]")
 					f.write("]))\n")
 				elif operation.func_name == "X":
-					f.write("\tpauli_x("+operation.reg_list.name+")\n")
+					f.write("\tpauli_x(qstate["+str(arg_list.index(operation.reg_list.name))+"])\n")
 				else:
 					if function_dict[operation.func_name].func_type==FuncType.MATRIX:
-						f.write("\t"+operation.func_name+"(qstate["+str(arg_list.index(reg.name))+"])\n")
+						f.write("\t"+operation.func_name+"(qstate["+str(arg_list.index(operation.reg_list.name))+"])\n")
 					else:
 						f.write("\t"+operation.func_name+"(QState([")
 						reg = operation.reg_list
