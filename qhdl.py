@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 import sys
 import getopt
-# sys.path.append("PATH TO GATE SIMULATOR")
+import re
+from parser import *
+from type_checker import *
+from codegen import *
+# sys.path.appen("PATH TO GATE SIMULATOR")
 
 def usage():
 	print('''
@@ -42,10 +46,14 @@ def command_line_parse():
 	
 	input_file = args[0]
 
-	return input_file, output_file	
+	return input_file, output_file		
 
 def main():
 	input_file, output_file = command_line_parse()
+	d_list = parser(input_file)
+	function_dict, operation_list, qbit_set = type_check(d_list)
+	if function_dict or operation_list or qbit_set:
+		codegen(output_file, function_dict, operation_list, qbit_set)
 
 if __name__ == '__main__':
     main()
