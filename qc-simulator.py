@@ -224,36 +224,6 @@ def build_t_vectors(qstate: QState):
     return pvectors
 
 
-def test_tof(qstate: QState):
-    """An attempt to solve how the bits change. Unsure if this is correct"""
-    if len(qstate) != 3:
-        print("wrong length for toffoli")
-        return
-    T = np.matrix([[1, 0, 0, 0, 0, 0, 0, 0],
-                   [0, 1, 0, 0, 0, 0, 0, 0],
-                   [0, 0, 1, 0, 0, 0, 0, 0],
-                   [0, 0, 0, 1, 0, 0, 0, 0],
-                   [0, 0, 0, 0, 1, 0, 0, 0],
-                   [0, 0, 0, 0, 0, 1, 0, 0],
-                   [0, 0, 0, 0, 0, 0, 0, 1],
-                   [0, 0, 0, 0, 0, 0, 1, 0]])
-
-    result_vectors = []
-    for v in build_t_vectors(qstate):
-        result_vectors.append(np.dot(T, v))
-    qstate.vector = pointwise_product(result_vectors)
-
-
-def pointwise_product(args):
-    vnet = []
-    for i in range(len(args[0])):
-        val = 1
-        for j in range(len(args)):
-            val *= float(args[j][i][0])
-        vnet.append([val])
-    return vnet
-
-
 def solve_coefficients(num_input_bits, gate_result):
     """Gate result: a vector containing the output values \alpha, \beta, ..."""
 
@@ -263,6 +233,9 @@ def solve_coefficients(num_input_bits, gate_result):
     #                         (q1_1, q2_1, q3_1): gate_result[2 ** num_inputs]}
 
     # Find which are 0's; construct the matrix to solve later of the nonzero ones
+    A = np.zeros((2 ** num_input_bits, 2 * num_input_bits))
+    rows_to_delete = []
+
     zero = set()
     not_zero = set()
     w = [0] * num_input_bits
@@ -271,13 +244,35 @@ def solve_coefficients(num_input_bits, gate_result):
             if k != 0 and k % 2 ** (num_input_bits - i - 1) == 0:
                 w[i] = (w[i] + 1) % 2
             s = str(i) + str(w[i])
+
+            A[k][2 * i + w[i]] = 1
+
             if gate_result[k][0] == 0:
+                rows_to_delete.append(k)
                 if s not in not_zero:
                     zero.add(s)
             else:
                 if s in zero:
                     zero.remove(s)
+
                 not_zero.add(s)
+
+    solution = {}
+
+    A = np.delete(A, obj=rows_to_delete, axis=0)
+    gate_result = np.delete(gate_result, rows_to_delete, 0)
+
+    print(A)
+    print(gate_result)
+    for ele in zero:
+        solution[ele] = 0
+        solution[ele[:-1] + str((int(ele[-1]) + 1) % 2)] = 1
+
+    if len(solution) == 2 * num_input_bits:
+        print(solution)
+        return solution
+
+    print(solution)
 
 
 """TODO: NEED TO KEEP WORKING ON SOLVING FOR HOW IT CHANGES EACH INDIVIDUAL BIT"""
